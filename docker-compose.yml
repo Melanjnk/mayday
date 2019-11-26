@@ -1,0 +1,48 @@
+version: '3'
+services:
+    web:
+        image: nginx
+        volumes:
+            - ./.docker/conf/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./.docker/conf/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - ./.docker/conf/nginx/sites-available/dev.highskills.ru.conf:/etc/nginx/conf.d/dev.highskills.ru.conf
+            - ./.docker/conf/nginx/sites-available/mayday.highskills.ru.conf:/etc/nginx/conf.d/mayday.highskills.ru.conf
+            - .:/var/www/html
+        ports:
+            - 80:80
+        restart: always
+        depends_on:
+            - php
+            - db
+    php:
+        restart: always
+        image: php:7.3-fpm-stretch
+        build:
+          context: ./.docker/conf/php-fpm
+          dockerfile: 'Dockerfile'
+          args:
+            USER: ${USER}
+            USER_HOME_DIR: ${USER_HOME_DIR}
+        environment:
+            TZ: Europe/Moscow
+        volumes:
+            - .:/var/www/html
+            - ./.docker/conf/php-fpm/conf/70-php.ini:/usr/local/etc/php/conf.d/70-php.ini
+            - ./.docker/conf/php-fpm/conf/70-xdebug.ini:/usr/local/etc/php/conf.d/70-xdebug.ini
+            - ./.docker/conf/php-fpm/conf/70-opcache.ini:/usr/local/etc/php/conf.d/70-opcache.ini
+    composer:
+        image: composer
+        volumes:
+            - .:/app
+        command: install
+    db:
+        image: postgres:10.1
+        restart: always
+        environment:
+            - POSTGRES_DB=${DB_NAME}
+            - POSTGRES_USER=${DB_USER}
+            - POSTGRES_PASSWORD=${DB_PASSWORD}
+        ports:
+            - 5432:5432
+        volumes:
+            - ./.docker/conf/postgres/:/docker-entrypoint-initdb.d/

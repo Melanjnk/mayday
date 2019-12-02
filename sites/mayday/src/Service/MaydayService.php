@@ -3,7 +3,11 @@
 namespace App\Service;
 
 use App\Entity\Mayday;
+use App\Filtering\Mayday\MaydayFilterDefinitionFactory;
+use App\Pagination\Mayday\MaydayPagination;
+use App\Pagination\PageRequestFactory;
 use App\Repository\MaydayRepository;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class MaydayService
@@ -15,29 +19,29 @@ class MaydayService
     private $maydayRepo;
 
     /**
+     * @var MaydayPagination
+     */
+    private $maydayPagination;
+
+    /**
      * MaydayService constructor.
      * @param MaydayRepository $maydayRepo
      */
-    public function __construct(MaydayRepository $maydayRepo)
+    public function __construct(MaydayRepository $maydayRepo, MaydayPagination $maydayPagination)
     {
         $this->maydayRepo = $maydayRepo;
+        $this->maydayPagination = $maydayPagination;
     }
 
-    /**
-     * @return Mayday[]
-     */
-    public function getMayday()
+    public function getMaydays(?Request $request)
     {
-        $mayday = $this->maydayRepo->findAll();
+        $pageFromRequest = new PageRequestFactory();
+        $page = $pageFromRequest->fromRequest($request);
 
-        $serializer = \JMS\Serializer\SerializerBuilder::create()
-            ->setPropertyNamingStrategy(
-                new \JMS\Serializer\Naming\SerializedNameAnnotationStrategy(
-                    new \JMS\Serializer\Naming\CamelCaseNamingStrategy()
-                )
-            )
-            ->build();
+        $maydayFilterDefinitionFactory = new MaydayFilterDefinitionFactory();
+        $maydayFilterDefinition = $maydayFilterDefinitionFactory->factory($request);
 
-        return $serializer->toArray($mayday);
+
+        return $this->maydayPagination->paginate($page, $maydayFilterDefinition);
     }
 }

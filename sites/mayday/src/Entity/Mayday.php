@@ -3,9 +3,21 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Hateoas\Configuration\Annotation as Hateoas;
+use JMS\Serializer\Annotation as Serializer;
 
+//*          parameters="{"mayday" = "expr(object.getId()"}",
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MaydayRepository")
+ *
+ * @Hateoas\Relation(
+ *      "self",
+ *      href=@Hateoas\Route(
+ *          "view_mayday",
+ *          parameters={"mayday" = "expr(object.getId())"},
+ *          absolute=true
+ *     )
+ * )
  */
 class Mayday
 {

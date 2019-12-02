@@ -38,3 +38,5 @@ Add mayday.highskills.local to your hosts
 ```console
 127.0.0.1 mayday.highskills.local
 ```
+
+Look sites/readme.md to get more info
